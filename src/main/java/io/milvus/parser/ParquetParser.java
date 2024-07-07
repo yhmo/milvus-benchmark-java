@@ -45,7 +45,7 @@ public class ParquetParser extends Parser {
                 return null;
             }
             rowCounter++;
-//            if (rowCounter > 1000000) {
+//            if (rowCounter > 50000) {
 //                return null;
 //            }
 

@@ -49,7 +49,7 @@ public class MilvusSearchRunner extends SearchRunner {
         SearchParam searchParam = SearchParam.newBuilder()
                 .withCollectionName(config.collectionName)
                 .withMetricType(MetricType.COSINE)
-                .withTopK(config.topK)
+                .withTopK(config.qpsTopK)
                 .withFloatVectors(Collections.singletonList(targetVector))
                 .withVectorFieldName(vectorFieldName)
                 .withParams("{}")

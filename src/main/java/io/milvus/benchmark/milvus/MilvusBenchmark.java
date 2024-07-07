@@ -60,7 +60,7 @@ public class MilvusBenchmark extends Benchmark {
         for (int i = 0; i < config.latencyRepeat; i++) {
             List<List<Float>> targetVectors = new ArrayList<>();
             List<Long> targetIDs = new ArrayList<>();
-            for (int k = 0; k < config.nq; k++) {
+            for (int k = 0; k < config.latencyNq; k++) {
                 Long id = queryIDs.get(ran.nextInt(queryIDs.size()));
                 targetIDs.add(id);
                 targetVectors.add(queryVectors.get(id));
@@ -69,7 +69,7 @@ public class MilvusBenchmark extends Benchmark {
             SearchParam searchParam = SearchParam.newBuilder()
                     .withCollectionName(config.collectionName)
                     .withMetricType(MetricType.COSINE)
-                    .withTopK(config.topK)
+                    .withTopK(config.latencyTopK)
                     .withFloatVectors(targetVectors)
                     .withVectorFieldName(vectorFieldName)
                     .withParams("{}")
@@ -84,7 +84,7 @@ public class MilvusBenchmark extends Benchmark {
 
             int correct = 0;
             SearchResultsWrapper searchWrapper = new SearchResultsWrapper(searchResp.getData().getResults());
-            for (int k = 0; k < config.nq; ++k) {
+            for (int k = 0; k < config.latencyNq; ++k) {
                 List<SearchResultsWrapper.IDScore> scores = searchWrapper.getIDScore(k);
                 Long targetID = targetIDs.get(k);
                 List<Long> nTruth = truth.get(targetID);
@@ -95,7 +95,7 @@ public class MilvusBenchmark extends Benchmark {
                     }
                 }
             }
-            float recallRate = (float)correct/ (config.nq* config.topK);
+            float recallRate = (float)correct/ (config.latencyNq* config.latencyTopK);
             totalRecall += recallRate;
         }
         float averageRecall = totalRecall/config.latencyRepeat;

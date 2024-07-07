@@ -1,0 +1,18 @@
+
+dataSet:
+  originalDataURL:
+    - assets.zilliz.com.cn/benchmark/openai_medium_500k/shuffle_train.parquet
+  queryVectorsURL: assets.zilliz.com.cn/benchmark/openai_medium_500k/test.parquet
+  groundTruthURL: assets.zilliz.com.cn/benchmark/openai_medium_500k/neighbors.parquet
+  collectionName: milvus_benchmark_java
+
+latencyTest:
+  repeat: 1000
+  nq: 1
+  topK: 100
+
+qpsTest:
+  threads: 10
+  nq: 1
+  topK: 100
+

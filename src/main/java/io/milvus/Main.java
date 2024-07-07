@@ -3,6 +3,15 @@ package io.milvus;
 import io.milvus.benchmark.BenchmarkConfig;
 import io.milvus.benchmark.milvus.MilvusBenchmark;
 import io.milvus.param.ConnectParam;
+import io.milvus.parser.ParquetParser;
+import io.milvus.parser.Parser;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Map;
 
 public class Main {
 
@@ -15,15 +24,6 @@ public class Main {
                 .build();
 
         BenchmarkConfig config = new BenchmarkConfig();
-        config.collectionName = "milvus_benchmark_java";
-        String baseDir = Utils.generatorLocalPath("data");
-        config.rawDataFiles.add(baseDir + "/shuffle_train.parquet");
-        config.groundTruthFile = baseDir + "/neighbors.parquet";
-        config.queryVectorFile = baseDir + "/test.parquet";
-        config.latencyRepeat = 1000;
-        config.qpsThreadsCount = 10;
-        config.qpsTestSeconds = 30;
-
         MilvusBenchmark benchmark = new MilvusBenchmark(connectParam, config);
         benchmark.run();
 
