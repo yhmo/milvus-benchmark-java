@@ -2,6 +2,8 @@ package io.milvus.benchmark;
 
 import io.milvus.ingestion.Ingestion;
 
+import java.util.List;
+
 public abstract class Benchmark {
     protected BenchmarkConfig config;
     protected BenchmarkResult result = new BenchmarkResult();
@@ -22,7 +24,7 @@ public abstract class Benchmark {
             return result;
         }
         if (!ingestion.run()) {
-            result.failedReason = "Failed to insert data from " + config.rawDataFile;
+            result.failedReason = "Failed to insert data from " + config.rawDataFiles;
             return result;
         }
 

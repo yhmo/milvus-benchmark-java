@@ -1,10 +1,11 @@
-package io.milvus.ingestion;
+package io.milvus.ingestion.milvus;
 
 import com.alibaba.fastjson.JSONObject;
 import io.milvus.client.MilvusClient;
 import io.milvus.client.MilvusServiceClient;
 import io.milvus.common.clientenum.ConsistencyLevelEnum;
 import io.milvus.grpc.*;
+import io.milvus.ingestion.Ingestion;
 import io.milvus.param.*;
 import io.milvus.param.collection.*;
 import io.milvus.param.dml.InsertParam;
@@ -24,8 +25,8 @@ public class MilvusIngestion extends Ingestion {
     private CreateCollectionParam param;
     private String collectionName;
 
-    public MilvusIngestion(ConnectParam connect, String collectionName, Parser parser) {
-        super(parser);
+    public MilvusIngestion(ConnectParam connect, String collectionName, List<Parser> parsers) {
+        super(parsers);
         milvusClient = new MilvusServiceClient(connect);
         this.collectionName = collectionName;
     }
@@ -139,6 +140,11 @@ public class MilvusIngestion extends Ingestion {
                         .build());
             }
         }
+        System.out.println("Index created");
+        milvusClient.loadCollection(LoadCollectionParam.newBuilder()
+                .withCollectionName(param.getCollectionName())
+                .build());
+        System.out.println("Collection loaded");
         return true;
     }
 

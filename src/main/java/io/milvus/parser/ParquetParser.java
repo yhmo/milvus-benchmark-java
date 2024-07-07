@@ -45,6 +45,9 @@ public class ParquetParser extends Parser {
                 return null;
             }
             rowCounter++;
+//            if (rowCounter > 1000000) {
+//                return null;
+//            }
 
             Map<String, Object> row = new HashMap<>();
             GroupType groupType = group.getType();
@@ -112,7 +115,7 @@ public class ParquetParser extends Parser {
         int dimension = parquetFieldTypes.get(fieldName).dimension;
         List<Long> array = new ArrayList<>();
         if (dimension == 0) {
-            for (int d = 0; d < 10000; d++) {
+            for (int d = 0; d < 4096; d++) {
                 try {
                     Group element = group.getGroup(0, d);
                     Long val = element.getLong(0, 0);

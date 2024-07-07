@@ -1,11 +1,11 @@
 package io.milvus.benchmark;
 
 public class BenchmarkResult {
-    public int qps = 0;
-    public long totalRequests = 0L;
+    public float averageLatency = 0.0f;
+    public float averageRecall = 0.0f;
 
-    public float perLatency = 0.0f;
-    public float recall = 0.0f;
+    public float qps = 0;
+    public long totalExecutedRequests = 0L;
 
     public String failedReason;
 }

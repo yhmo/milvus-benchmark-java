@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class Ingestion {
-    protected final Parser parser;
+    protected final List<Parser> parsers;
 
-    public Ingestion(Parser parser) {
-        this.parser = parser;
+    public Ingestion(List<Parser> parsers) {
+        this.parsers = parsers;
     }
 
     protected void preRun() {}
@@ -48,10 +48,17 @@ public abstract class Ingestion {
     }
 
     public boolean run() {
+        if (parsers.isEmpty()) {
+            System.out.println("Parser list is empty");
+            return false;
+        }
         preRun(); // a chance to do something before run
 
-        Map<String, Object> row =  parser.nextRow(); // must call before rowSchema()
-        Map<String, RawFieldType> rawSchema = parser.rawSchema();
+        List<Map<String, Object>> rows = new ArrayList<>();
+        Parser p = parsers.get(0);
+        Map<String, Object> row =  p.nextRow(); // must call before rowSchema()
+        rows.add(row);
+        Map<String, RawFieldType> rawSchema = p.rawSchema();
         if (!createCollection(rawSchema)) {
             System.out.println("Failed to create collection");
             return false;
@@ -61,36 +68,39 @@ public abstract class Ingestion {
         int batchRows = 50 * 1024 * 1024 / rowSize;
         System.out.println(String.format("Estimated row size: %d, rows per batch: %d", rowSize, batchRows));
 
-        List<Map<String, Object>> rows = new ArrayList<>();
         int rowCounter = 0;
-        while (row != null) {
-            rows.add(row);
+        for (Parser parser : parsers) {
+            row =  p.nextRow();
+            while (row != null) {
+                rows.add(row);
 
-            if (rowCounter > 10000) {
-                break;
+//                if (rowCounter > 10000) {
+//                    break;
+//                }
+
+                if (rows.size() >= batchRows) {
+                    if(!insertRows(rows)) {
+                        System.out.println("Failed to insert");
+                        return false;
+                    }
+                    rowCounter += rows.size();
+                    rows.clear();
+                    System.out.println(String.format("%d rows inserted", rowCounter));
+                }
+                row = parser.nextRow();
             }
 
-            if (rows.size() >= batchRows) {
+            // the tail data
+            if (!rows.isEmpty()) {
                 if(!insertRows(rows)) {
                     System.out.println("Failed to insert");
                     return false;
                 }
                 rowCounter += rows.size();
                 rows.clear();
-                System.out.println(String.format("%d rows inserted", rowCounter));
             }
-            row = parser.nextRow();
         }
 
-        // the tail data
-        if (!rows.isEmpty()) {
-            if(!insertRows(rows)) {
-                System.out.println("Failed to insert");
-                return false;
-            }
-            rowCounter += rows.size();
-            rows.clear();
-        }
         System.out.println(String.format("Totally %d rows inserted", rowCounter));
 
         if (!createIndex()) {
