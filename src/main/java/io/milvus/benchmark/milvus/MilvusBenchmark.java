@@ -118,7 +118,7 @@ public class MilvusBenchmark extends Benchmark {
         }
         float averageRecall = totalRecall/config.latencyRepeat;
         float averageLatency = totalLatency/ config.latencyRepeat;
-        System.out.println(String.format("Repeat %d times, average recall rate: %f, average latency: %f ms",
+        System.out.println(String.format("Repeat %d times, average recall rate: %.2f%%, average latency: %.1f ms",
                 config.latencyRepeat, averageRecall*100.0f, averageLatency));
 
         this.result.averageRecall = averageRecall;
@@ -163,8 +163,8 @@ public class MilvusBenchmark extends Benchmark {
         float elapsedSeconds = (float)(tsEnd - tsStart)/1000;
         result.qps = (float)totalExecutedRequests/ elapsedSeconds;
 
-        System.out.println(String.format("%d threads run %d seconds, total executed: %d, average qps: %f",
-                config.qpsThreadsCount, config.qpsTestSeconds, totalExecutedRequests, result.qps));
+        System.out.println(String.format("%d threads, %.3f seconds elapsed, total executed: %d, average qps: %.3f",
+                config.qpsThreadsCount, elapsedSeconds, totalExecutedRequests, result.qps));
     }
 
     @Override
