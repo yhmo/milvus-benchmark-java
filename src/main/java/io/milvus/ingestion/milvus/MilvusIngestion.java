@@ -141,11 +141,6 @@ public class MilvusIngestion extends Ingestion {
             }
         }
         System.out.println("Index created");
-        milvusClient.loadCollection(LoadCollectionParam.newBuilder()
-                .withCollectionName(param.getCollectionName())
-                .withSyncLoadWaitingTimeout(3600L)
-                .build());
-        System.out.println("Collection loaded");
         return true;
     }
 

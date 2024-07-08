@@ -26,6 +26,8 @@ public class Utils {
             File file = new File(url);
             String fileName = file.getName();
             String baseDir = Utils.generatorLocalPath(localDir);
+            File dirPath = new File(baseDir);
+            dirPath.mkdirs();
             String localFilePath = baseDir + "/" + fileName;
             file = new File(localFilePath);
             if (file.exists()) {
@@ -38,7 +40,7 @@ public class Utils {
                 url = "http://" + url;
             }
 
-            System.out.println(String.format("Download from '%s'", url));
+            System.out.println(String.format("Downloading from '%s'...", url));
             URL urlObj = new URL(url);
             HttpURLConnection httpConn = (HttpURLConnection) urlObj.openConnection();
             int responseCode = httpConn.getResponseCode();
@@ -52,6 +54,9 @@ public class Utils {
                 }
                 outputStream.close();
                 inputStream.close();
+            } else {
+                System.out.println(String.format("Failed to download '%s', response code: %d",
+                        url, responseCode));
             }
             httpConn.disconnect();
             return localFilePath;

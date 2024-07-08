@@ -11,6 +11,7 @@ import io.milvus.param.MetricType;
 import io.milvus.param.R;
 import io.milvus.param.collection.DescribeCollectionParam;
 import io.milvus.param.collection.FieldType;
+import io.milvus.param.collection.LoadCollectionParam;
 import io.milvus.param.dml.SearchParam;
 import io.milvus.parser.ParquetParser;
 import io.milvus.parser.Parser;
@@ -34,6 +35,17 @@ public class MilvusBenchmark extends Benchmark {
         ingestion = new MilvusIngestion(connect, config.collectionName, parsers);
         groundTruth = new GroundTruth(new ParquetParser(config.groundTruthFile));
         queryVectors = new QueryVectors(new ParquetParser(config.queryVectorFile));
+    }
+
+    @Override
+    protected void preRun() {
+        MilvusClient milvusClient = new MilvusServiceClient(connect);
+        milvusClient.loadCollection(LoadCollectionParam.newBuilder()
+                .withCollectionName(config.collectionName)
+                .withSyncLoadWaitingTimeout(300L)
+                .build());
+        System.out.println("Collection loaded");
+        milvusClient.close();
     }
 
     @Override
@@ -80,7 +92,7 @@ public class MilvusBenchmark extends Benchmark {
                 System.out.println("Failed to search: " + searchResp.getMessage());
             }
             long tsEnd = System.nanoTime();
-            totalLatency = (tsEnd - tsStart)/1000000;
+            totalLatency += (tsEnd - tsStart)/1000000;
 
             int correct = 0;
             SearchResultsWrapper searchWrapper = new SearchResultsWrapper(searchResp.getData().getResults());

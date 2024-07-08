@@ -7,11 +7,12 @@ import java.util.List;
 import java.util.Map;
 
 public class BenchmarkConfig {
-    // general configurations
+    // dataset configurations
     public String collectionName;
     public List<String> rawDataFiles = new ArrayList<>();
     public String queryVectorFile;
     public String groundTruthFile;
+    public boolean skipImport = true;
 
     // recall/latency test configurations
     public int latencyRepeat = 1000;
@@ -31,13 +32,13 @@ public class BenchmarkConfig {
 
     private void init() {
         Map<String, Object> configurations = Utils.readConfigurations();
-//        System.out.println(configurations);
 
         Map<String, Object> dataSet = (Map<String, Object>)configurations.get("dataSet");
         collectionName = (String)dataSet.get("collectionName");
         rawDataFiles = (List<String>)dataSet.get("originalDataURL");
         queryVectorFile = (String)dataSet.get("queryVectorsURL");
         groundTruthFile = (String)dataSet.get("groundTruthURL");
+        skipImport = (Boolean)dataSet.get("skipImport");
 
         Map<String, Object> latencyTest = (Map<String, Object>)configurations.get("latencyTest");
         latencyRepeat = (Integer) latencyTest.get("repeat");
@@ -48,10 +49,12 @@ public class BenchmarkConfig {
         qpsThreadsCount = (Integer) qpsTest.get("threads");
         qpsTopK = (Integer) qpsTest.get("topK");
         qpsNq = (Integer) qpsTest.get("nq");
+
+//        System.out.println(configurations);
     }
 
     private void download() {
-        String localDir = "data";
+        String localDir = "data/" + collectionName;
         List<String> localFiles = new ArrayList<>();
         for (String url : rawDataFiles) {
             String localPath = Utils.downloadRemoteFile(url, localDir);

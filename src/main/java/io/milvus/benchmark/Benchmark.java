@@ -18,12 +18,19 @@ public abstract class Benchmark {
     protected abstract void recallAndLatencyTest();
     protected abstract void qpsTest();
 
+    protected void preRun() {}
+    protected void postRun() {}
+
     public BenchmarkResult run() {
+        preRun();
+
         if (ingestion == null) {
             result.failedReason = "Ingestion is null";
             return result;
         }
-        if (!ingestion.run()) {
+        if (config.skipImport) {
+            System.out.println("Skip data import");
+        } else if (!ingestion.run()) {
             result.failedReason = "Failed to insert data from " + config.rawDataFiles;
             return result;
         }
@@ -39,6 +46,8 @@ public abstract class Benchmark {
 
         recallAndLatencyTest();
         qpsTest();
+
+        postRun();
         return result;
     }
 }
