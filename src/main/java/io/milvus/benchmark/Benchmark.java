@@ -19,6 +19,7 @@ public abstract class Benchmark {
     protected abstract void qpsTest();
 
     protected void preRun() {}
+    protected void preTest() {}
     protected void postRun() {}
 
     public BenchmarkResult run() {
@@ -44,6 +45,7 @@ public abstract class Benchmark {
             return result;
         }
 
+        preTest();
         recallAndLatencyTest();
         qpsTest();
 

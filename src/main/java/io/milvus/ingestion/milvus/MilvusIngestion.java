@@ -24,11 +24,13 @@ public class MilvusIngestion extends Ingestion {
     private MilvusClient milvusClient;
     private CreateCollectionParam param;
     private String collectionName;
+    private boolean dropCollectionIfExists = true;
 
-    public MilvusIngestion(ConnectParam connect, String collectionName, List<Parser> parsers) {
+    public MilvusIngestion(ConnectParam connect, String collectionName, boolean dropCollectionIfExists, List<Parser> parsers) {
         super(parsers);
         milvusClient = new MilvusServiceClient(connect);
         this.collectionName = collectionName;
+        this.dropCollectionIfExists = dropCollectionIfExists;
     }
 
     private CollectionSchemaParam convertSchema(Map<String, RawFieldType> rawSchema) {
@@ -115,18 +117,26 @@ public class MilvusIngestion extends Ingestion {
                 .withDatabaseName(param.getDatabaseName())
                 .build());
         if (resp.getData()) {
-            milvusClient.dropCollection(DropCollectionParam.newBuilder()
-                    .withCollectionName(param.getCollectionName())
-                    .withDatabaseName(param.getDatabaseName())
-                    .build());
+            if (dropCollectionIfExists) {
+                // drop old collection
+                milvusClient.dropCollection(DropCollectionParam.newBuilder()
+                        .withCollectionName(param.getCollectionName())
+                        .withDatabaseName(param.getDatabaseName())
+                        .build());
+            } else {
+                return true; //reuse collection
+            }
         }
 
+        // create new collection
         milvusClient.createCollection(param);
+        System.out.println(String.format("Collection '%s' created", param.getCollectionName()));
         return true;
     }
 
     @Override
     protected boolean createIndex() {
+        System.out.println("Creating index...");
         List<FieldType> fields = param.getFieldTypes();
         for (FieldType field : fields) {
             if (field.getDataType() == DataType.FloatVector) {

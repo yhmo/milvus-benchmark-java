@@ -52,13 +52,14 @@ public abstract class Ingestion {
             System.out.println("Parser list is empty");
             return false;
         }
+        System.out.println("Prepare to run ingestion...");
         preRun(); // a chance to do something before run
 
         List<Map<String, Object>> rows = new ArrayList<>();
-        Parser p = parsers.get(0);
-        Map<String, Object> row =  p.nextRow(); // must call before rowSchema()
-        rows.add(row);
-        Map<String, RawFieldType> rawSchema = p.rawSchema();
+        Parser firstParser = parsers.get(0);
+        Map<String, Object> row =  firstParser.nextRow(); // must call before rowSchema()
+        rows.add(row); // don't forget this row
+        Map<String, RawFieldType> rawSchema = firstParser.rawSchema();
         if (!createCollection(rawSchema)) {
             System.out.println("Failed to create collection");
             return false;
@@ -70,13 +71,9 @@ public abstract class Ingestion {
 
         int rowCounter = 0;
         for (Parser parser : parsers) {
-            row =  p.nextRow();
+            row =  parser.nextRow();
             while (row != null) {
                 rows.add(row);
-
-//                if (rowCounter > 10000) {
-//                    break;
-//                }
 
                 if (rows.size() >= batchRows) {
                     if(!insertRows(rows)) {
@@ -98,6 +95,7 @@ public abstract class Ingestion {
                 }
                 rowCounter += rows.size();
                 rows.clear();
+                System.out.println(String.format("%d rows inserted", rowCounter));
             }
         }
 

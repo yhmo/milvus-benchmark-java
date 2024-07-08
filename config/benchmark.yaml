@@ -14,7 +14,26 @@ dataSet:
   queryVectorsURL: assets.zilliz.com.cn/benchmark/openai_large_5m/test.parquet
   groundTruthURL: assets.zilliz.com.cn/benchmark/openai_large_5m/neighbors.parquet
   collectionName: benchmark_java_openai_5m
+  dropCollectionIfExists: true
   skipImport: false
+
+#dataSet:
+#  originalDataURL:
+#    - assets.zilliz.com.cn/benchmark/cohere_large_10m/shuffle_train-00-of-10.parquet
+#    - assets.zilliz.com.cn/benchmark/cohere_large_10m/shuffle_train-01-of-10.parquet
+#    - assets.zilliz.com.cn/benchmark/cohere_large_10m/shuffle_train-02-of-10.parquet
+#    - assets.zilliz.com.cn/benchmark/cohere_large_10m/shuffle_train-03-of-10.parquet
+#    - assets.zilliz.com.cn/benchmark/cohere_large_10m/shuffle_train-04-of-10.parquet
+#    - assets.zilliz.com.cn/benchmark/cohere_large_10m/shuffle_train-05-of-10.parquet
+#    - assets.zilliz.com.cn/benchmark/cohere_large_10m/shuffle_train-06-of-10.parquet
+#    - assets.zilliz.com.cn/benchmark/cohere_large_10m/shuffle_train-07-of-10.parquet
+#    - assets.zilliz.com.cn/benchmark/cohere_large_10m/shuffle_train-08-of-10.parquet
+#    - assets.zilliz.com.cn/benchmark/cohere_large_10m/shuffle_train-09-of-10.parquet
+#  queryVectorsURL: assets.zilliz.com.cn/benchmark/cohere_large_10m/test.parquet
+#  groundTruthURL: assets.zilliz.com.cn/benchmark/cohere_large_10m/neighbors.parquet
+#  collectionName: benchmark_java_cohere_10m
+#  dropCollectionIfExists: true
+#  skipImport: false
 
 #dataSet:
 #  originalDataURL:
@@ -22,6 +41,7 @@ dataSet:
 #  queryVectorsURL: assets.zilliz.com.cn/benchmark/openai_medium_500k/test.parquet
 #  groundTruthURL: assets.zilliz.com.cn/benchmark/openai_medium_500k/neighbors.parquet
 #  collectionName: benchmark_java_openai_500k
+#  dropCollectionIfExists: true
 #  skipImport: true
 
 latencyTest:
@@ -34,3 +54,10 @@ qpsTest:
   nq: 1
   topK: 100
 
+milvus:
+  uri:
+  token:
+  host: localhost
+  port: 19530
+  user: "root"
+  password: "Milvus"

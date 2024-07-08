@@ -23,22 +23,24 @@ import java.util.*;
 public class MilvusBenchmark extends Benchmark {
     private final ConnectParam connect;
 
-    public MilvusBenchmark(ConnectParam connect, BenchmarkConfig config) {
-        super(config);
-        this.connect = connect;
+    public MilvusBenchmark() {
+        super(new BenchmarkConfig());
+
+        MilvusConfig milvusConfig = new MilvusConfig();
+        this.connect = milvusConfig.connectParam;
 
         List<Parser> parsers = new ArrayList<>();
         for (String filePath : config.rawDataFiles) {
             parsers.add(new ParquetParser(filePath));
         }
 
-        ingestion = new MilvusIngestion(connect, config.collectionName, parsers);
+        ingestion = new MilvusIngestion(connect, config.collectionName, config.dropCollectionIfExists, parsers);
         groundTruth = new GroundTruth(new ParquetParser(config.groundTruthFile));
         queryVectors = new QueryVectors(new ParquetParser(config.queryVectorFile));
     }
 
     @Override
-    protected void preRun() {
+    protected void preTest() {
         MilvusClient milvusClient = new MilvusServiceClient(connect);
         milvusClient.loadCollection(LoadCollectionParam.newBuilder()
                 .withCollectionName(config.collectionName)

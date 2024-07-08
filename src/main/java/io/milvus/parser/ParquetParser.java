@@ -41,13 +41,10 @@ public class ParquetParser extends Parser {
         try {
             Group group = parquetReader.read();
             if (group == null) {
-                System.out.println(String.format("Totally %d row read from parquet", rowCounter));
+                System.out.println(String.format("Totally %d rows read from '%s'", rowCounter, getFilePath()));
                 return null;
             }
             rowCounter++;
-//            if (rowCounter > 50000) {
-//                return null;
-//            }
 
             Map<String, Object> row = new HashMap<>();
             GroupType groupType = group.getType();

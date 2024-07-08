@@ -12,6 +12,7 @@ public class BenchmarkConfig {
     public List<String> rawDataFiles = new ArrayList<>();
     public String queryVectorFile;
     public String groundTruthFile;
+    public boolean dropCollectionIfExists = true;
     public boolean skipImport = true;
 
     // recall/latency test configurations
@@ -38,6 +39,7 @@ public class BenchmarkConfig {
         rawDataFiles = (List<String>)dataSet.get("originalDataURL");
         queryVectorFile = (String)dataSet.get("queryVectorsURL");
         groundTruthFile = (String)dataSet.get("groundTruthURL");
+        dropCollectionIfExists = (Boolean)dataSet.get("dropCollectionIfExists");
         skipImport = (Boolean)dataSet.get("skipImport");
 
         Map<String, Object> latencyTest = (Map<String, Object>)configurations.get("latencyTest");
@@ -64,10 +66,7 @@ public class BenchmarkConfig {
         }
         rawDataFiles = localFiles;
 
-        String localQueryVectorsPath = Utils.downloadRemoteFile(queryVectorFile, localDir);
-        queryVectorFile = localQueryVectorsPath;
-
-        String localGroundTruthPath = Utils.downloadRemoteFile(groundTruthFile, localDir);
-        groundTruthFile = localGroundTruthPath;
+        queryVectorFile = Utils.downloadRemoteFile(queryVectorFile, localDir);
+        groundTruthFile = Utils.downloadRemoteFile(groundTruthFile, localDir);
     }
 }
