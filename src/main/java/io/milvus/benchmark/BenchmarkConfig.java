@@ -14,6 +14,7 @@ public class BenchmarkConfig {
     public String groundTruthFile;
     public boolean dropCollectionIfExists = true;
     public boolean skipImport = true;
+    public int batchSize = 50; // units: MB
 
     // recall/latency test configurations
     public int latencyRepeat = 1000;
@@ -41,6 +42,7 @@ public class BenchmarkConfig {
         groundTruthFile = (String)dataSet.get("groundTruthURL");
         dropCollectionIfExists = (Boolean)dataSet.get("dropCollectionIfExists");
         skipImport = (Boolean)dataSet.get("skipImport");
+        batchSize = (Integer) dataSet.get("batchSize");
 
         Map<String, Object> latencyTest = (Map<String, Object>)configurations.get("latencyTest");
         latencyRepeat = (Integer) latencyTest.get("repeat");

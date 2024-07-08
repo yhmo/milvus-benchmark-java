@@ -1,6 +1,7 @@
 package io.milvus.ingestion.milvus;
 
 import com.alibaba.fastjson.JSONObject;
+import io.milvus.benchmark.BenchmarkConfig;
 import io.milvus.client.MilvusClient;
 import io.milvus.client.MilvusServiceClient;
 import io.milvus.common.clientenum.ConsistencyLevelEnum;
@@ -26,11 +27,11 @@ public class MilvusIngestion extends Ingestion {
     private String collectionName;
     private boolean dropCollectionIfExists = true;
 
-    public MilvusIngestion(ConnectParam connect, String collectionName, boolean dropCollectionIfExists, List<Parser> parsers) {
-        super(parsers);
+    public MilvusIngestion(ConnectParam connect, BenchmarkConfig config, List<Parser> parsers) {
+        super(parsers, config.batchSize);
         milvusClient = new MilvusServiceClient(connect);
-        this.collectionName = collectionName;
-        this.dropCollectionIfExists = dropCollectionIfExists;
+        this.collectionName = config.collectionName;
+        this.dropCollectionIfExists = config.dropCollectionIfExists;
     }
 
     private CollectionSchemaParam convertSchema(Map<String, RawFieldType> rawSchema) {
@@ -123,6 +124,7 @@ public class MilvusIngestion extends Ingestion {
                         .withCollectionName(param.getCollectionName())
                         .withDatabaseName(param.getDatabaseName())
                         .build());
+                System.out.println(String.format("Collection '%s' dropped", param.getCollectionName()));
             } else {
                 return true; //reuse collection
             }
@@ -177,12 +179,17 @@ public class MilvusIngestion extends Ingestion {
 
     @Override
     protected boolean insertRows(List<Map<String, Object>> rows) {
+        long tsStart = System.currentTimeMillis();
         List<JSONObject> data = convertRows(rows);
+        long tsConvert = System.currentTimeMillis();
         R<MutationResult> resp = milvusClient.insert(InsertParam.newBuilder()
                 .withCollectionName(param.getCollectionName())
                 .withDatabaseName(param.getDatabaseName())
                 .withRows(data)
                 .build());
+        long tsEnd = System.currentTimeMillis();
+        System.out.println(String.format("Prepare %d rows time cost %d ms, insert rows time cost %d ms",
+                rows.size(), tsConvert - tsStart, tsEnd - tsConvert));
         return resp.getStatus() == R.Status.Success.getCode();
     }
 

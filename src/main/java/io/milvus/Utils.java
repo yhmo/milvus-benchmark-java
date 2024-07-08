@@ -18,6 +18,8 @@ public class Utils {
     public static String generatorLocalPath(String subDir) {
         Path currentWorkingDirectory = Paths.get("").toAbsolutePath();
         Path currentScriptPath = currentWorkingDirectory.resolve(subDir);
+        File dirPath = new File(currentScriptPath.toString());
+        dirPath.mkdirs();
         return currentScriptPath.toString();
     }
 
@@ -26,8 +28,6 @@ public class Utils {
             File file = new File(url);
             String fileName = file.getName();
             String baseDir = Utils.generatorLocalPath(localDir);
-            File dirPath = new File(baseDir);
-            dirPath.mkdirs();
             String localFilePath = baseDir + "/" + fileName;
             file = new File(localFilePath);
             if (file.exists()) {

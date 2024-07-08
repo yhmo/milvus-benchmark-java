@@ -16,6 +16,7 @@ dataSet:
   collectionName: benchmark_java_openai_5m
   dropCollectionIfExists: true
   skipImport: false
+  batchSize: 50 # units: MB
 
 #dataSet:
 #  originalDataURL:

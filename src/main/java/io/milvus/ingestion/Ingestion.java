@@ -9,9 +9,11 @@ import java.util.Map;
 
 public abstract class Ingestion {
     protected final List<Parser> parsers;
+    protected int batchSize = 50; // units: MB
 
-    public Ingestion(List<Parser> parsers) {
+    public Ingestion(List<Parser> parsers, int batchSize) {
         this.parsers = parsers;
+        this.batchSize = batchSize;
     }
 
     protected void preRun() {}
@@ -66,7 +68,7 @@ public abstract class Ingestion {
         }
 
         int rowSize = estimateRowSize(rawSchema);
-        int batchRows = 50 * 1024 * 1024 / rowSize;
+        int batchRows = batchSize * 1024 * 1024 / rowSize;
         System.out.println(String.format("Estimated row size: %d, rows per batch: %d", rowSize, batchRows));
 
         int rowCounter = 0;

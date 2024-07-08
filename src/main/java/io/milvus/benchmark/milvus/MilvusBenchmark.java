@@ -1,5 +1,6 @@
 package io.milvus.benchmark.milvus;
 
+import io.milvus.Utils;
 import io.milvus.benchmark.*;
 import io.milvus.client.MilvusClient;
 import io.milvus.client.MilvusServiceClient;
@@ -19,6 +20,9 @@ import io.milvus.response.DescCollResponseWrapper;
 import io.milvus.response.SearchResultsWrapper;
 
 import java.util.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class MilvusBenchmark extends Benchmark {
     private final ConnectParam connect;
@@ -34,7 +38,7 @@ public class MilvusBenchmark extends Benchmark {
             parsers.add(new ParquetParser(filePath));
         }
 
-        ingestion = new MilvusIngestion(connect, config.collectionName, config.dropCollectionIfExists, parsers);
+        ingestion = new MilvusIngestion(connect, config, parsers);
         groundTruth = new GroundTruth(new ParquetParser(config.groundTruthFile));
         queryVectors = new QueryVectors(new ParquetParser(config.queryVectorFile));
     }
@@ -133,6 +137,7 @@ public class MilvusBenchmark extends Benchmark {
             runners.add(runner);
         }
 
+        long tsStart = System.currentTimeMillis();
         List<Thread> threads = new ArrayList<>();
         for (SearchRunner runner : runners) {
              Thread t = new Thread(runner);
@@ -148,15 +153,53 @@ public class MilvusBenchmark extends Benchmark {
             System.out.println("Thread interrupted");
             e.printStackTrace();
         }
+        long tsEnd = System.currentTimeMillis();
 
         long totalExecutedRequests = 0L;
         for (SearchRunner runner : runners) {
             totalExecutedRequests += runner.executedReuests();
         }
         result.totalExecutedRequests = totalExecutedRequests;
-        result.qps = (float)totalExecutedRequests/ config.qpsTestSeconds;
+        float elapsedSeconds = (float)(tsEnd - tsStart)/1000;
+        result.qps = (float)totalExecutedRequests/ elapsedSeconds;
 
         System.out.println(String.format("%d threads run %d seconds, total executed: %d, average qps: %f",
                 config.qpsThreadsCount, config.qpsTestSeconds, totalExecutedRequests, result.qps));
+    }
+
+    @Override
+    protected void postRun() {
+        // print report
+        System.out.println("#########################################################################################");
+        System.out.println("Latency test:");
+        System.out.println(String.format("\tRepeat %d times, nq=%d, topK=%d",
+                config.latencyRepeat, config.latencyNq, config.latencyTopK));
+        System.out.println(String.format("\tAverage recall rate: %.2f%%", result.averageRecall*100.0f));
+        System.out.println(String.format("\tAverage latency: %.1f ms", result.averageLatency));
+        System.out.println("#########################################################################################");
+        System.out.println("QPS test:");
+        System.out.println(String.format("\t%d threads, %d seconds, nq=%d, topK=%d",
+                config.qpsThreadsCount, config.qpsTestSeconds, config.qpsNq, config.qpsTopK));
+        System.out.println(String.format("\tQPS: %.3f", result.qps));
+        System.out.println("#########################################################################################");
+
+        // report to md file
+        String baseDir = Utils.generatorLocalPath("report");
+        String filePath = String.format("%s/%s.md", baseDir, config.collectionName);
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            writer.write("## Latency test:\n");
+            writer.write(String.format("\tRepeat %d times, nq=%d, topK=%d",
+                    config.latencyRepeat, config.latencyNq, config.latencyTopK));
+            writer.write(String.format("\tAverage recall rate: %.2f%%", result.averageRecall*100.0f));
+            writer.write(String.format("\tAverage latency: %.1f ms", result.averageLatency));
+            writer.write("## QPS test:\n");
+            writer.write(String.format("\t%d threads, %d seconds, nq=%d, topK=%d",
+                    config.qpsThreadsCount, config.qpsTestSeconds, config.qpsNq, config.qpsTopK));
+            writer.write(String.format("\tQPS: %.3f", result.qps));
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(String.format("Failed to export report file, error: %s", filePath, e.getMessage()));
+        }
     }
 }
