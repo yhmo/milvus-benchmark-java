@@ -59,14 +59,16 @@ public class BenchmarkConfig {
 
     private void download() {
         String localDir = "data/" + collectionName;
-        List<String> localFiles = new ArrayList<>();
-        for (String url : rawDataFiles) {
-            String localPath = Utils.downloadRemoteFile(url, localDir);
-            if (!localPath.isEmpty()) {
-                localFiles.add(localPath);
+        if (!skipImport) {
+            List<String> localFiles = new ArrayList<>();
+            for (String url : rawDataFiles) {
+                String localPath = Utils.downloadRemoteFile(url, localDir);
+                if (!localPath.isEmpty()) {
+                    localFiles.add(localPath);
+                }
             }
+            rawDataFiles = localFiles;
         }
-        rawDataFiles = localFiles;
 
         queryVectorFile = Utils.downloadRemoteFile(queryVectorFile, localDir);
         groundTruthFile = Utils.downloadRemoteFile(groundTruthFile, localDir);
