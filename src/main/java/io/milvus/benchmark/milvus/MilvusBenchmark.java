@@ -65,6 +65,11 @@ public class MilvusBenchmark extends Benchmark {
         R<DescribeCollectionResponse> descCol = milvusClient.describeCollection(DescribeCollectionParam.newBuilder()
                 .withCollectionName(config.collectionName)
                 .build());
+        if (descCol.getStatus() != R.Status.Success.getCode()) {
+            System.out.println(String.format("Failed to get collection '%s', error: %s",
+                    config.collectionName, descCol.getMessage()));
+            return;
+        }
         DescCollResponseWrapper wrapper = new DescCollResponseWrapper(descCol.getData());
         List<FieldType> vectorFields = wrapper.getVectorFields();
         String vectorFieldName = vectorFields.get(0).getName();
@@ -160,6 +165,9 @@ public class MilvusBenchmark extends Benchmark {
         long totalExecutedRequests = 0L;
         for (SearchRunner runner : runners) {
             totalExecutedRequests += runner.executedReuests();
+            if (runner.failedReason() != null) {
+                result.failedReason = runner.failedReason();
+            }
         }
         result.totalExecutedRequests = totalExecutedRequests;
         float elapsedSeconds = (float)(tsEnd - tsStart)/1000;
@@ -172,37 +180,45 @@ public class MilvusBenchmark extends Benchmark {
     @Override
     protected void postRun() {
         // print report
-        System.out.println("#########################################################################################");
-        System.out.println("Latency test:");
-        System.out.println(String.format("\tRepeat %d times, nq=%d, topK=%d",
-                config.latencyRepeat, config.latencyNq, config.latencyTopK));
-        System.out.println(String.format("\tAverage recall rate: %.2f%%", result.averageRecall*100.0f));
-        System.out.println(String.format("\tAverage latency: %.1f ms", result.averageLatency));
-        System.out.println("#########################################################################################");
-        System.out.println("QPS test:");
-        System.out.println(String.format("\t%d threads, %d seconds, nq=%d, topK=%d",
-                config.qpsThreadsCount, config.qpsTestSeconds, config.qpsNq, config.qpsTopK));
-        System.out.println(String.format("\tQPS: %.3f", result.qps));
-        System.out.println("#########################################################################################");
+        if (result.failedReason != null) {
+            System.out.println("Benchmark failed. " + result.failedReason);
+        } else {
+            System.out.println("#########################################################################################");
+            System.out.println("Latency test:");
+            System.out.println(String.format("\tRepeat %d times, nq=%d, topK=%d",
+                    config.latencyRepeat, config.latencyNq, config.latencyTopK));
+            System.out.println(String.format("\tAverage recall rate: %.2f%%", result.averageRecall*100.0f));
+            System.out.println(String.format("\tAverage latency: %.1f ms", result.averageLatency));
+            System.out.println("#########################################################################################");
+            System.out.println("QPS test:");
+            System.out.println(String.format("\t%d threads, %d seconds, nq=%d, topK=%d",
+                    config.qpsThreadsCount, config.qpsTestSeconds, config.qpsNq, config.qpsTopK));
+            System.out.println(String.format("\tQPS: %.3f", result.qps));
+            System.out.println("#########################################################################################");
+        }
 
         // report to md file
         String baseDir = Utils.generatorLocalPath("report");
         String filePath = String.format("%s/%s.md", baseDir, config.collectionName);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-            writer.write("## Latency test:\n");
-            writer.write(String.format("  Repeat %d times, nq=%d, topK=%d\n",
-                    config.latencyRepeat, config.latencyNq, config.latencyTopK));
-            writer.write(String.format("  Average recall rate: %.2f%%\n", result.averageRecall*100.0f));
-            writer.write(String.format("  Average latency: %.1f ms\n", result.averageLatency));
-            writer.write("## QPS test:\n");
-            writer.write(String.format("  %d threads, %d seconds, nq=%d, topK=%d\n",
-                    config.qpsThreadsCount, config.qpsTestSeconds, config.qpsNq, config.qpsTopK));
-            writer.write(String.format("  QPS: %.3f\n", result.qps));
-
+            if (result.failedReason != null) {
+                writer.write("Benchmark failed. " + result.failedReason);
+            } else {
+                writer.write("## Latency test:\n");
+                writer.write(String.format("  Repeat %d times, nq=%d, topK=%d\n",
+                        config.latencyRepeat, config.latencyNq, config.latencyTopK));
+                writer.write(String.format("  Average recall rate: %.2f%%\n", result.averageRecall*100.0f));
+                writer.write(String.format("  Average latency: %.1f ms\n", result.averageLatency));
+                writer.write("## QPS test:\n");
+                writer.write(String.format("  %d threads, %d seconds, nq=%d, topK=%d\n",
+                        config.qpsThreadsCount, config.qpsTestSeconds, config.qpsNq, config.qpsTopK));
+                writer.write(String.format("  QPS: %.3f\n", result.qps));
+            }
+            
             Date currentDate = new Date();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            writer.write(String.format("Test date: \n", sdf.format(currentDate)));
+            writer.write(String.format("\nTest date: \n", sdf.format(currentDate)));
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println(String.format("Failed to export report file, error: %s", filePath, e.getMessage()));

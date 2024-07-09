@@ -34,6 +34,13 @@ public class MilvusSearchRunner extends SearchRunner {
         R<DescribeCollectionResponse> descCol = milvusClient.describeCollection(DescribeCollectionParam.newBuilder()
                 .withCollectionName(config.collectionName)
                 .build());
+        if (descCol.getStatus() != R.Status.Success.getCode()) {
+            failedReason = String.format("Failed to get collection '%s', error: %s",
+                    config.collectionName, descCol.getMessage());
+            System.out.println(failedReason);
+            return;
+        }
+
         DescCollResponseWrapper wrapper = new DescCollResponseWrapper(descCol.getData());
         List<FieldType> vectorFields = wrapper.getVectorFields();
         vectorFieldName = vectorFields.get(0).getName();
@@ -45,6 +52,10 @@ public class MilvusSearchRunner extends SearchRunner {
     }
 
     public void run() {
+        if (vectorFieldName == null || targetVector == null) {
+            return;
+        }
+
         System.out.println(String.format("Thread '%s' start", Thread.currentThread().getName()));
         SearchParam searchParam = SearchParam.newBuilder()
                 .withCollectionName(config.collectionName)
@@ -66,7 +77,9 @@ public class MilvusSearchRunner extends SearchRunner {
 
             R<SearchResults> searchResp = milvusClient.search(searchParam);
             if (searchResp.getStatus() != R.Status.Success.getCode()) {
-                System.out.println("Failed to search: " + searchResp.getMessage());
+                failedReason = "Failed to search: " + searchResp.getMessage();
+                System.out.println(failedReason);
+                break;
             }
             this.executedRequests++;
         }
