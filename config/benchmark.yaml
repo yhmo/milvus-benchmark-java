@@ -14,8 +14,8 @@ dataSet:
   queryVectorsURL: assets.zilliz.com.cn/benchmark/openai_large_5m/test.parquet
   groundTruthURL: assets.zilliz.com.cn/benchmark/openai_large_5m/neighbors.parquet
   collectionName: benchmark_java_openai_5m
-  dropCollectionIfExists: true
-  skipImport: false
+  dropCollectionIfExists: false
+  skipImport: true
   batchSize: 50 # units: MB
 
 #dataSet:
@@ -51,13 +51,13 @@ latencyTest:
   topK: 100
 
 qpsTest:
-  threads: 20
+  threads: 10
   nq: 1
   topK: 100
 
 milvus:
   uri:
-  token:
+  token: 
   host: localhost
   port: 19530
   user: "root"

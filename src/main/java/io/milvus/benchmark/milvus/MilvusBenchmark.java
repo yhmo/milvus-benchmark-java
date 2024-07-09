@@ -23,6 +23,7 @@ import java.util.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 
 public class MilvusBenchmark extends Benchmark {
     private final ConnectParam connect;
@@ -98,17 +99,18 @@ public class MilvusBenchmark extends Benchmark {
                 System.out.println("Failed to search: " + searchResp.getMessage());
             }
             long tsEnd = System.nanoTime();
-            totalLatency += (tsEnd - tsStart)/1000000;
+            totalLatency += (tsEnd - tsStart)/1000000; // convert nano second to milli second
 
             int correct = 0;
             SearchResultsWrapper searchWrapper = new SearchResultsWrapper(searchResp.getData().getResults());
             for (int k = 0; k < config.latencyNq; ++k) {
                 List<SearchResultsWrapper.IDScore> scores = searchWrapper.getIDScore(k);
                 Long targetID = targetIDs.get(k);
-                List<Long> nTruth = truth.get(targetID);
+                List<Long> allTruth = truth.get(targetID);
+                List<Long> topkTruth = allTruth.subList(0, config.latencyTopK);
                 for (SearchResultsWrapper.IDScore score : scores) {
                     long resultID = score.getLongID();
-                    if (nTruth.contains(resultID)) {
+                    if (topkTruth.contains(resultID)) {
                         correct++;
                     }
                 }
@@ -189,14 +191,18 @@ public class MilvusBenchmark extends Benchmark {
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             writer.write("## Latency test:\n");
-            writer.write(String.format("\tRepeat %d times, nq=%d, topK=%d",
+            writer.write(String.format("  Repeat %d times, nq=%d, topK=%d\n",
                     config.latencyRepeat, config.latencyNq, config.latencyTopK));
-            writer.write(String.format("\tAverage recall rate: %.2f%%", result.averageRecall*100.0f));
-            writer.write(String.format("\tAverage latency: %.1f ms", result.averageLatency));
+            writer.write(String.format("  Average recall rate: %.2f%%\n", result.averageRecall*100.0f));
+            writer.write(String.format("  Average latency: %.1f ms\n", result.averageLatency));
             writer.write("## QPS test:\n");
-            writer.write(String.format("\t%d threads, %d seconds, nq=%d, topK=%d",
+            writer.write(String.format("  %d threads, %d seconds, nq=%d, topK=%d\n",
                     config.qpsThreadsCount, config.qpsTestSeconds, config.qpsNq, config.qpsTopK));
-            writer.write(String.format("\tQPS: %.3f", result.qps));
+            writer.write(String.format("  QPS: %.3f\n", result.qps));
+
+            Date currentDate = new Date();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            writer.write(String.format("Test date: \n", sdf.format(currentDate)));
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println(String.format("Failed to export report file, error: %s", filePath, e.getMessage()));
