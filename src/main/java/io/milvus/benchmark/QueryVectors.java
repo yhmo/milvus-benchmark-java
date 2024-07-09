@@ -1,5 +1,6 @@
 package io.milvus.benchmark;
 
+import io.milvus.Constants;
 import io.milvus.parser.ParquetParser;
 import io.milvus.parser.Parser;
 
@@ -26,7 +27,7 @@ public class QueryVectors {
         System.out.println("Prepare query vectors...");
         Map<String, Object> row = parser.nextRow();
         while(row != null) {
-            Long id = (Long)row.get("id");
+            Long id = (Long)row.get(Constants.ID_FIELD);
             List<Float> vector = (List<Float>)row.get("emb");
             vectors.put(id, vector);
             row = parser.nextRow();

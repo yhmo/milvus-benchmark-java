@@ -1,6 +1,7 @@
 package io.milvus.ingestion.milvus;
 
 import com.alibaba.fastjson.JSONObject;
+import io.milvus.Constants;
 import io.milvus.benchmark.BenchmarkConfig;
 import io.milvus.client.MilvusClient;
 import io.milvus.client.MilvusServiceClient;
@@ -43,7 +44,7 @@ public class MilvusIngestion extends Ingestion {
                 continue;
             }
 
-            boolean primaryKey = key.equals("id");
+            boolean primaryKey = key.equals(Constants.ID_FIELD);
 
             RawFieldType field = rawSchema.get(key);
             String primitiveName = field.primitiveTypeName;
@@ -51,7 +52,7 @@ public class MilvusIngestion extends Ingestion {
             if (logicName.equals("LIST")) {
                 if (primitiveName.equals("FLOAT") || primitiveName.equals("DOUBLE")) {
                     builder.addFieldType(FieldType.newBuilder()
-                            .withName(key)
+                            .withName(Constants.VECTOR_FIELD)
                             .withDataType(DataType.FloatVector)
                             .withDimension(field.dimension)
                             .build());
@@ -164,6 +165,8 @@ public class MilvusIngestion extends Ingestion {
             for (FieldType fieldType : fieldTypes) {
                 if (row.containsKey(fieldType.getName())) {
                     obj.put(fieldType.getName(), row.get(fieldType.getName()));
+                } else if (fieldType.getName().equals(Constants.VECTOR_FIELD)) {
+                    obj.put(Constants.VECTOR_FIELD, row.get("emb"));
                 }
             }
 

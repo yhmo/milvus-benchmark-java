@@ -1,5 +1,6 @@
 package io.milvus.benchmark;
 
+import io.milvus.Constants;
 import io.milvus.parser.ParquetParser;
 import io.milvus.parser.Parser;
 
@@ -24,8 +25,8 @@ public class GroundTruth {
         System.out.println("Prepare ground truth...");
         Map<String, Object> row = parser.nextRow();
         while(row != null) {
-            Long id = (Long)row.get("id");
-            List<Long> neighbors = (List<Long>)row.get("neighbors_id");
+            Long id = (Long)row.get(Constants.ID_FIELD);
+            List<Long> neighbors = (List<Long>)row.get(Constants.NEIGHBORS_ID);
             truth.put(id, neighbors);
             row = parser.nextRow();
         }
