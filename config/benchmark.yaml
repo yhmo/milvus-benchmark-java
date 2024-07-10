@@ -14,7 +14,7 @@
 #  queryVectorsURL: assets.zilliz.com.cn/benchmark/openai_large_5m/test.parquet
 #  groundTruthURL: assets.zilliz.com.cn/benchmark/openai_large_5m/neighbors.parquet
 #  collectionName: benchmark_java_openai_5m
-#  dropCollectionIfExists: true
+#  dropCollectionIfExists: false
 #  skipImport: false
 #  batchSize: 50 # units: MB
 
@@ -33,7 +33,7 @@ dataSet:
   queryVectorsURL: assets.zilliz.com.cn/benchmark/cohere_large_10m/test.parquet
   groundTruthURL: assets.zilliz.com.cn/benchmark/cohere_large_10m/neighbors.parquet
   collectionName: benchmark_java_cohere_10m
-  dropCollectionIfExists: true
+  dropCollectionIfExists: false
   skipImport: false
   batchSize: 50 # units: MB
 
@@ -43,7 +43,7 @@ dataSet:
 #  queryVectorsURL: assets.zilliz.com.cn/benchmark/openai_medium_500k/test.parquet
 #  groundTruthURL: assets.zilliz.com.cn/benchmark/openai_medium_500k/neighbors.parquet
 #  collectionName: benchmark_java_openai_500k
-#  dropCollectionIfExists: true
+#  dropCollectionIfExists: false
 #  skipImport: false
 #  batchSize: 50 # units: MB
 
