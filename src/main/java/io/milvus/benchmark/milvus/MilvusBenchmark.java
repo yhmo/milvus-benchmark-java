@@ -218,7 +218,7 @@ public class MilvusBenchmark extends Benchmark {
             
             Date currentDate = new Date();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            writer.write(String.format("\nTest date: \n", sdf.format(currentDate)));
+            writer.write(String.format("\nTest date: %s\n", sdf.format(currentDate)));
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println(String.format("Failed to export report file, error: %s", filePath, e.getMessage()));
