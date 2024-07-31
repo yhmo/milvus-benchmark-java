@@ -17,8 +17,6 @@ public class BenchmarkConfig {
     public int batchSize = 50; // units: MB
 
     // recall/latency test configurations
-    public int latencyRepeat = 1000;
-    public int latencyNq = 1;
     public int latencyTopK = 100;
 
     // qps test configurations
@@ -45,9 +43,7 @@ public class BenchmarkConfig {
         batchSize = (Integer) dataSet.get("batchSize");
 
         Map<String, Object> latencyTest = (Map<String, Object>)configurations.get("latencyTest");
-        latencyRepeat = (Integer) latencyTest.get("repeat");
         latencyTopK = (Integer) latencyTest.get("topK");
-        latencyNq = (Integer) latencyTest.get("nq");
 
         Map<String, Object> qpsTest = (Map<String, Object>)configurations.get("qpsTest");
         qpsThreadsCount = (Integer) qpsTest.get("threads");

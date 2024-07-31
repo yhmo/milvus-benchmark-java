@@ -59,8 +59,7 @@ public class MilvusBenchmark extends Benchmark {
     protected void recallAndLatencyTest() {
         MilvusClient milvusClient = new MilvusServiceClient(connect);
 
-        System.out.println(String.format("Prepare to search %d times to test average latency and recall",
-                config.latencyRepeat));
+        System.out.println("Prepare to test average latency and recall");
 
         R<DescribeCollectionResponse> descCol = milvusClient.describeCollection(DescribeCollectionParam.newBuilder()
                 .withCollectionName(config.collectionName)
@@ -78,17 +77,14 @@ public class MilvusBenchmark extends Benchmark {
         List<Long> queryIDs = this.queryVectors.getIDs();
         Map<Long, List<Long>> truth = groundTruth.getTruth();
 
-        Random ran = new Random();
         float totalRecall = 0.0f;
         float totalLatency = 0.0f;
-        for (int i = 0; i < config.latencyRepeat; i++) {
+        for (int i = 0; i < queryIDs.size(); i++) {
             List<List<Float>> targetVectors = new ArrayList<>();
             List<Long> targetIDs = new ArrayList<>();
-            for (int k = 0; k < config.latencyNq; k++) {
-                Long id = queryIDs.get(ran.nextInt(queryIDs.size()));
-                targetIDs.add(id);
-                targetVectors.add(queryVectors.get(id));
-            }
+            Long id = queryIDs.get(i);
+            targetIDs.add(id);
+            targetVectors.add(queryVectors.get(id));
 
             SearchParam searchParam = SearchParam.newBuilder()
                     .withCollectionName(config.collectionName)
@@ -108,7 +104,7 @@ public class MilvusBenchmark extends Benchmark {
 
             int correct = 0;
             SearchResultsWrapper searchWrapper = new SearchResultsWrapper(searchResp.getData().getResults());
-            for (int k = 0; k < config.latencyNq; ++k) {
+            for (int k = 0; k < targetIDs.size(); ++k) {
                 List<SearchResultsWrapper.IDScore> scores = searchWrapper.getIDScore(k);
                 Long targetID = targetIDs.get(k);
                 List<Long> allTruth = truth.get(targetID);
@@ -120,13 +116,13 @@ public class MilvusBenchmark extends Benchmark {
                     }
                 }
             }
-            float recallRate = (float)correct/ (config.latencyNq* config.latencyTopK);
+            float recallRate = (float)correct/ (targetIDs.size()* config.latencyTopK);
             totalRecall += recallRate;
         }
-        float averageRecall = totalRecall/config.latencyRepeat;
-        float averageLatency = totalLatency/ config.latencyRepeat;
-        System.out.println(String.format("Repeat %d times, average recall rate: %.2f%%, average latency: %.1f ms",
-                config.latencyRepeat, averageRecall*100.0f, averageLatency));
+        float averageRecall = totalRecall/queryIDs.size();
+        float averageLatency = totalLatency/queryIDs.size();
+        System.out.println(String.format("Searched %d times, average recall rate: %.2f%%, average latency: %.1f ms",
+                queryIDs.size(), averageRecall*100.0f, averageLatency));
 
         this.result.averageRecall = averageRecall;
         this.result.averageLatency = averageLatency;
@@ -185,8 +181,7 @@ public class MilvusBenchmark extends Benchmark {
         } else {
             System.out.println("#########################################################################################");
             System.out.println("Latency test:");
-            System.out.println(String.format("\tRepeat %d times, nq=%d, topK=%d",
-                    config.latencyRepeat, config.latencyNq, config.latencyTopK));
+            System.out.println(String.format("\ttopK=%d", config.latencyTopK));
             System.out.println(String.format("\tAverage recall rate: %.2f%%", result.averageRecall*100.0f));
             System.out.println(String.format("\tAverage latency: %.1f ms", result.averageLatency));
             System.out.println("#########################################################################################");
@@ -206,8 +201,7 @@ public class MilvusBenchmark extends Benchmark {
                 writer.write("Benchmark failed. " + result.failedReason);
             } else {
                 writer.write("## Latency test:\n");
-                writer.write(String.format("  Repeat %d times, nq=%d, topK=%d\n",
-                        config.latencyRepeat, config.latencyNq, config.latencyTopK));
+                writer.write(String.format("  topK=%d\n", config.latencyTopK));
                 writer.write(String.format("  Average recall rate: %.2f%%\n", result.averageRecall*100.0f));
                 writer.write(String.format("  Average latency: %.1f ms\n", result.averageLatency));
                 writer.write("## QPS test:\n");
